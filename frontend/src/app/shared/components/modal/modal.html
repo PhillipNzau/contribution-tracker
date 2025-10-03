@@ -1,0 +1,26 @@
+<div
+  class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-28"
+  (click)="onBackdropClick($event)"
+  animate.enter="fade-in"
+  animate.leave="fade-out"
+>
+  <!-- Backdrop (z-40) -->
+  <div
+    class="fixed inset-0 z-40 backdrop-blur-[1px] bg-black/50 transition-all"
+    animate.enter="backdrop-fade-in"
+    animate.leave="backdrop-fade-out"
+    (click)="onBackdropClick($event)"
+  ></div>
+
+  <!-- Modal content wrapper (z-50) -->
+  <div
+    class="relative z-50 mx-auto w-auto max-w-full transform px-4 sm:px-0 transition-all duration-300 ease-in-out"
+    (click)="$event.stopPropagation()"
+    animate.enter="modal-in"
+    animate.leave="modal-out"
+  >
+    <div class="max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-lg">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

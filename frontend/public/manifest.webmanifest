@@ -1,0 +1,44 @@
+{
+  "id": "/UnitWise",
+  "start_url": "/",
+  "display": "standalone",
+  "name": "Unit Wise",
+  "short_name": "UnitWise",
+  "theme_color": "#DDF0DD",
+  "background_color": "#17322D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://via.placeholder.com/1024x768.png?text=Offline+Upload+Demo+Desktop",
+      "sizes": "1024x768",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "screenshots/screenshot-mobile.png",
+      "sizes": "389x837",
+      "type": "image/png",
+      "platform": "narrow"
+    }
+  ]
+}

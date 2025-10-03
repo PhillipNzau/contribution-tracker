@@ -1,1 +1,109 @@
 /* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Jura:wght@300..700&display=swap");
+@use "@ngneat/hot-toast/src/styles/styles.scss";
+@import "tailwindcss";
+@theme {
+  /* Define custom colors */
+  --color-primary: #daf1de;
+  --color-secondary: #8eb69b;
+  --color-dark: #163832;
+  --color-container: #fffbfb;
+  --color-shadow: #0b2b26;
+  --color-text: #051f20;
+}
+
+* {
+  font-family: "Jura", sans-serif;
+  font-optical-sizing: auto;
+  /* font-weight: extrabold; */
+  font-style: normal;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.animate-fade-in-out {
+  animation: fadeInOut 1.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
+
+/* Assign animation classes */
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.2s ease-in forwards;
+}
+
+.backdrop-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.backdrop-fade-out {
+  animation: fadeOut 0.2s ease-in forwards;
+}
+
+.modal-in {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.modal-out {
+  animation: slideDown 0.3s ease-in forwards;
+}

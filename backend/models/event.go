@@ -15,6 +15,7 @@ type Event struct {
 	TargetAmount float64            `bson:"target_amount,omitempty" json:"target_amount,omitempty"`
 	Deadline     *time.Time         `bson:"deadline,omitempty" json:"deadline,omitempty"`
 	Status       string             `bson:"status" json:"status"` // ACTIVE, CLOSED, ARCHIVED
+	Images       []string            `bson:"images" json:"images"`
 	CreatedAt    time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt    time.Time          `bson:"updated_at" json:"updated_at"`
 }

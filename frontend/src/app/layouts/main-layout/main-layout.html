@@ -1,0 +1,14 @@
+<section
+  class="h-screen w-screen overflow-hidden flex flex-col justify-between [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
+>
+  <div
+    class="h-full overflow-hidden overflow-y-scroll [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]"
+  >
+    <!-- Main page content will render here -->
+    <router-outlet></router-outlet>
+  </div>
+  <!-- This layout includes your shared UI (e.g. navbar) -->
+  <div class="h-20 w-full px-4 my-2">
+    <app-navbar></app-navbar>
+  </div>
+</section>

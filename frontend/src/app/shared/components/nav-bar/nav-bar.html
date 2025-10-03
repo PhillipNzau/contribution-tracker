@@ -1,0 +1,125 @@
+<nav
+  aria-label="Main navigation"
+  class="bg-text h-full rounded-4xl flex text-primary items-center px-5"
+>
+  <ul class="flex gap-4 items-center justify-between text-[11px] w-full">
+    <li>
+      <a
+        (click)="vibrateOnClick()"
+        routerLink="/properties"
+        [ngClass]="{ 'text-rose-400': isRouteActive('/properties') }"
+        class="flex flex-col items-center space-x-2 hover:text-rose-400 transition-colors space-y-2"
+        title="Go to Properties page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-building2-icon lucide-building-2"
+        >
+          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+          <path d="M10 6h4" />
+          <path d="M10 10h4" />
+          <path d="M10 14h4" />
+          <path d="M10 18h4" />
+        </svg>
+
+        <span>Properties </span>
+      </a>
+    </li>
+    <li>
+      <a
+        (click)="vibrateOnClick()"
+        routerLink="/reports"
+        [ngClass]="{ 'text-rose-400': isRouteActive('/reports') }"
+        class="flex flex-col items-center space-x-2 hover:text-rose-400 transition-colors space-y-2"
+        title="Go to Reports page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-clipboard-plus-icon lucide-clipboard-plus"
+        >
+          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+          <path
+            d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+          />
+          <path d="M9 14h6" />
+          <path d="M12 17v-6" />
+        </svg>
+        <span>Reports</span></a
+      >
+    </li>
+    <li>
+      <a
+        (click)="vibrateOnClick()"
+        routerLink="/notifications"
+        [ngClass]="{ 'text-rose-400': isRouteActive('/notifications') }"
+        class="flex flex-col items-center space-x-2 hover:text-rose-400 transition-colors space-y-2"
+        title="Go to Notification page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-bell-dot-icon lucide-bell-dot"
+        >
+          <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+          <path
+            d="M13.916 2.314A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.74 7.327A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673 9 9 0 0 1-.585-.665"
+          />
+          <circle cx="18" cy="8" r="3" />
+        </svg>
+
+        <span>Notifications</span></a
+      >
+    </li>
+    <li>
+      <a
+        (click)="vibrateOnClick()"
+        routerLink="/profile"
+        [ngClass]="{ 'text-rose-400': isRouteActive('/profile') }"
+        class="flex flex-col items-center justify-center space-x-2 hover:text-rose-400 transition-colors space-y-2"
+        title="Go to profile page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-user-round-icon lucide-user-round"
+        >
+          <circle cx="12" cy="8" r="5" />
+          <path d="M20 21a8 8 0 0 0-16 0" />
+        </svg>
+        <span>Profile</span></a
+      >
+    </li>
+  </ul>
+</nav>

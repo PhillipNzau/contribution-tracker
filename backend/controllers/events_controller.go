@@ -17,6 +17,7 @@ import (
 // ---------------- CREATE ----------------
 func CreateEvent(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// --- Authenticated user ---
 		uid := c.GetString("user_id")
 		userID, err := primitive.ObjectIDFromHex(uid)
 		if err != nil {
@@ -24,12 +25,64 @@ func CreateEvent(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		var input models.Event
-		if err := c.ShouldBindJSON(&input); err != nil {
+		// --- Bind form fields ---
+		var input struct {
+			Title        string   `form:"title" binding:"required"`
+			Description  string   `form:"description"`
+			Location     string   `form:"location"`
+			TargetAmount float64  `form:"target_amount"`
+			Deadline     *string  `form:"deadline"` // string for binding, convert later
+		}
+
+		if err := c.ShouldBind(&input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		// --- Parse deadline if provided ---
+		var deadline *time.Time
+		if input.Deadline != nil && *input.Deadline != "" {
+			parsed, err := time.Parse(time.RFC3339, *input.Deadline)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid deadline format, use RFC3339"})
+				return
+			}
+			deadline = &parsed
+		}
+
+		// --- Handle file uploads ---
+		form, err := c.MultipartForm()
+		if err != nil && err != http.ErrNotMultipart {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data"})
+			return
+		}
+
+		var imageURLs []string
+		if form != nil {
+			files := form.File["images"] // key must be "images"
+			for _, fileHeader := range files {
+				file, err := fileHeader.Open()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open file"})
+					return
+				}
+
+				url, err := utils.UploadToCloudinary(file, fileHeader)
+				file.Close()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error":   "image upload failed",
+						"details": err.Error(),
+						"file":    fileHeader.Filename,
+					})
+					return
+				}
+
+				imageURLs = append(imageURLs, url)
+			}
+		}
+
+		// --- Save event ---
 		now := time.Now()
 		event := models.Event{
 			ID:           primitive.NewObjectID(),
@@ -38,8 +91,9 @@ func CreateEvent(cfg *config.Config) gin.HandlerFunc {
 			Description:  input.Description,
 			Location:     input.Location,
 			TargetAmount: input.TargetAmount,
-			Deadline:     input.Deadline,
+			Deadline:     deadline,
 			Status:       "ACTIVE",
+			Images:       imageURLs,
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
@@ -53,9 +107,10 @@ func CreateEvent(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{"id": event.ID.Hex(), "message": "event created"})
+		c.JSON(http.StatusCreated, event)
 	}
 }
+
 
 // ---------------- LIST ----------------
 func ListEvents(cfg *config.Config) gin.HandlerFunc {
@@ -162,26 +217,58 @@ func GetEvent(cfg *config.Config) gin.HandlerFunc {
 // ---------------- UPDATE ----------------
 func UpdateEvent(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid := c.GetString("user_id")
-		userID, err := primitive.ObjectIDFromHex(uid)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
+		// ✅ Validate requester identity
+		role := c.GetString("role")
+		requesterID := c.GetString("user_id")
+		if requesterID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
-		oid, err := primitive.ObjectIDFromHex(c.Param("id"))
+		// ✅ Validate Event ID
+		id := c.Param("id")
+		objID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event id"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
 			return
 		}
 
-		var input models.Event
-		if err := c.ShouldBindJSON(&input); err != nil {
+		// ✅ Fetch existing event
+		col := cfg.MongoClient.Database(cfg.DBName).Collection("events")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		var existing models.Event
+		if err := col.FindOne(ctx, bson.M{"_id": objID}).Decode(&existing); err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+			return
+		}
+
+		// ✅ Check permission
+		if role != "admin" && existing.UserID.Hex() != requesterID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+			return
+		}
+
+		// ✅ Bind input (form-data for mixed text + file upload)
+		var input struct {
+			Title        string   `form:"title"`
+			Description  string   `form:"description"`
+			Location     string   `form:"location"`
+			TargetAmount float64  `form:"target_amount"`
+			Deadline     *string  `form:"deadline"`
+			Status       string   `form:"status"`
+			Images       []string `form:"images"` // existing image URLs to keep
+		}
+
+		if err := c.ShouldBind(&input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		// ✅ Prepare update document
 		update := bson.M{"updated_at": time.Now()}
+
 		if input.Title != "" {
 			update["title"] = input.Title
 		}
@@ -191,49 +278,87 @@ func UpdateEvent(cfg *config.Config) gin.HandlerFunc {
 		if input.Location != "" {
 			update["location"] = input.Location
 		}
-		if input.TargetAmount != 0 {
+		if input.TargetAmount > 0 {
 			update["target_amount"] = input.TargetAmount
-		}
-		if input.Deadline != nil {
-			update["deadline"] = input.Deadline
 		}
 		if input.Status != "" {
 			update["status"] = input.Status
 		}
+		if input.Deadline != nil && *input.Deadline != "" {
+			parsed, err := time.Parse(time.RFC3339, *input.Deadline)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid deadline format, use RFC3339"})
+				return
+			}
+			update["deadline"] = parsed
+		}
 
+		// ✅ Handle new image uploads (multipart form)
+		newImageURLs := []string{}
+		form, _ := c.MultipartForm()
+		if form != nil {
+			files := form.File["new_images"] // key = "new_images"
+			for _, fileHeader := range files {
+				file, err := fileHeader.Open()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to open image"})
+					return
+				}
+				url, err := utils.UploadToCloudinary(file, fileHeader)
+				file.Close()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "image upload failed", "details": err.Error()})
+					return
+				}
+				newImageURLs = append(newImageURLs, url)
+			}
+		}
+
+		// ✅ Merge images (keep provided + add new)
+		if input.Images != nil || len(newImageURLs) > 0 {
+			update["images"] = append(input.Images, newImageURLs...)
+		}
+
+		// ❗ Reject empty update
 		if len(update) == 1 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "no fields to update"})
 			return
 		}
 
-		col := cfg.MongoClient.Database(cfg.DBName).Collection("events")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		res, err := col.UpdateOne(ctx, bson.M{"_id": oid, "user_id": userID}, bson.M{"$set": update})
+		// ✅ Apply update
+		_, err = col.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": update})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update event"})
-			return
-		}
-		if res.MatchedCount == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "event not found or not owned"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update event"})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "event updated", "id": oid.Hex()})
+		// ✅ Fetch updated event
+		var updated models.Event
+		if err := col.FindOne(ctx, bson.M{"_id": objID}).Decode(&updated); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated event"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Event updated successfully",
+			"event":   updated,
+		})
 	}
 }
+
 
 // ---------------- DELETE ----------------
 func DeleteEvent(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid := c.GetString("user_id")
-		userID, err := primitive.ObjectIDFromHex(uid)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
+		// ✅ Validate requester identity
+		role := c.GetString("role")
+		requesterID := c.GetString("user_id")
+		if requesterID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
+		// ✅ Validate event ID
 		oid, err := primitive.ObjectIDFromHex(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event id"})
@@ -244,16 +369,39 @@ func DeleteEvent(cfg *config.Config) gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		res, err := col.DeleteOne(ctx, bson.M{"_id": oid, "user_id": userID})
+		// ✅ Fetch existing event
+		var existing models.Event
+		if err := col.FindOne(ctx, bson.M{"_id": oid}).Decode(&existing); err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+			return
+		}
+
+		// ✅ Check permission
+		if role != "admin" && existing.UserID.Hex() != requesterID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+			return
+		}
+
+		// ✅ Delete event
+		res, err := col.DeleteOne(ctx, bson.M{"_id": oid})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete event"})
 			return
 		}
 		if res.DeletedCount == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "event not found or not owned"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "event deleted", "id": oid.Hex()})
+		// 🔹 (Optional) TODO: Delete images from Cloudinary
+		for _, img := range existing.Images {
+			  utils.DeleteFromCloudinary(img)
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "event deleted successfully",
+			"id":      oid.Hex(),
+		})
 	}
 }
+

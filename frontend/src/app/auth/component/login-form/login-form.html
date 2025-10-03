@@ -1,0 +1,170 @@
+<section
+  class="w-full min-h-[25%] border border-text/8 shadow-xl/20 shadow-text/70 rounded-3xl p-4 my-6"
+>
+  <form
+    [formGroup]="
+      isVerifyOtp() ? verifyOtpForm : isSignup() ? signUpForm : loginForm
+    "
+    class="space-y-8 w-full"
+  >
+    <div>
+      <label
+        for="email"
+        class="flex flex-col justify-between w-full border-b px-2"
+      >
+        <p class="font-black">Email:</p>
+        <input
+          id="email"
+          type="email"
+          placeholder="Email"
+          formControlName="email"
+          class="w-full py-2 outline-none placeholder:text-gray-400"
+        />
+      </label>
+      @if ((isSignup() ? signUpForm : loginForm).controls.email.touched &&
+      (isSignup() ? signUpForm : loginForm).controls.email.invalid) {
+      <div class="text-red-500 text-xs mt-2">
+        @if ((isSignup() ? signUpForm :
+        loginForm).controls.email.errors?.['required']) {
+        <p>Email is required</p>
+        } @if ((isSignup() ? signUpForm :
+        loginForm).controls.email.errors?.['email']) {
+        <p>Enter a valid email</p>
+        }
+      </div>
+      }
+    </div>
+
+    @if(isSignup()){
+    <div>
+      <label
+        for="name"
+        class="flex justify-between flex-col w-full border-b px-2"
+      >
+        <p class="font-black">Name:</p>
+
+        <input
+          id="name"
+          type="name"
+          placeholder="Name"
+          formControlName="name"
+          class="w-full py-2 outline-none placeholder:text-gray-400"
+        />
+      </label>
+
+      @if ( signUpForm.controls.name.touched &&
+      signUpForm.controls.name.invalid) {
+      <div class="text-red-500 text-xs mt-2">
+        @if (signUpForm.controls.name.errors?.['required']) {
+        <p>Name is required.</p>
+        }
+      </div>
+      }
+    </div>
+
+    <div>
+      <label
+        for="phone"
+        class="flex justify-between flex-col w-full border-b px-2"
+      >
+        <p class="font-black">Phone Number:</p>
+
+        <input
+          id="phone"
+          type="tel"
+          placeholder="phone"
+          formControlName="phone"
+          class="w-full py-2 outline-none placeholder:text-gray-400"
+        />
+      </label>
+
+      @if ( signUpForm.controls.phone.touched &&
+      signUpForm.controls.phone.invalid) {
+      <div class="text-red-500 text-xs mt-2">
+        @if (signUpForm.controls.phone.errors?.['required']) {
+        <p>Phone number is required.</p>
+        }
+      </div>
+      }
+    </div>
+
+    <input
+      id="role"
+      type="text"
+      placeholder="role"
+      formControlName="role"
+      class="hidden w-full py-2 outline-none placeholder:text-gray-400"
+    />
+    } @if(isVerifyOtp()) {
+    <div>
+      <label
+        for="otp"
+        class="flex justify-between items-center w-full border-b px-2"
+      >
+        <input
+          formControlName="otp"
+          id="otp"
+          placeholder="Enter Otp"
+          type="text"
+          class="w-full py-2 outline-none placeholder:text-gray-400"
+        />
+      </label>
+    </div>
+
+    }
+    <div class="flex w-full justify-between items-center text-text">
+      <p
+        (click)="toggleSignup()"
+        class="hover:cursor-pointer hover:underline hover:underline-offset-4"
+      >
+        {{ isVerifyOtp() ? "Login" : isSignup() ? "Login" : "Register" }}
+      </p>
+      <button
+        (click)="
+          isVerifyOtp()
+            ? submitOtpForm()
+            : isSignup()
+            ? submitSignupForm()
+            : submitLoginForm()
+        "
+        [ngClass]="
+          (
+            isVerifyOtp()
+              ? verifyOtpForm.invalid
+              : isSignup()
+              ? signUpForm.invalid
+              : loginForm.invalid
+          )
+            ? 'bg-primary text-text'
+            : 'bg-text text-primary'
+        "
+        class="py-1 rounded-2xl text-container h-8 px-6 text-sm"
+        [disabled]="
+          isVerifyOtp()
+            ? verifyOtpForm.invalid
+            : isSignup()
+            ? signUpForm.invalid
+            : loginForm.invalid
+        "
+      >
+        {{
+          isSubmitting()
+            ? "SUBMITTING..."
+            : isVerifyOtp()
+            ? "VERIFY OTP"
+            : isSignup()
+            ? "REGISTER"
+            : "LOGIN"
+        }}
+      </button>
+    </div>
+  </form>
+</section>
+
+<button
+  type="button"
+  class="text-gray-600 text-center hover:cursor-pointer w-full"
+  (click)="handleBack()"
+>
+  Head back home
+</button>

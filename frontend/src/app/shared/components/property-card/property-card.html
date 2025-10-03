@@ -1,0 +1,54 @@
+<div
+  [routerLink]="['/properties', propertyData.id]"
+  class="space-y-4 hover:border hover:border-text/8 hover:shadow-xl/20 hover:shadow-text/70 rounded-2xl p-2"
+>
+  <div class="w-full h-44 rounded-2xl overflow-clip">
+    <img
+      [src]="propertyData.images?.[0]"
+      alt="property image"
+      class="w-full h-full object-cover"
+    />
+  </div>
+  <div class="flex justify-between items-end">
+    <div class="space-y-2.5">
+      <p class="text-sm font-bold">{{ propertyData.title }}</p>
+      <div>
+        <p class="flex items-center gap-2 text-dark text-sm">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-map-pin-icon lucide-map-pin"
+          >
+            <path
+              d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+            />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span>{{ propertyData.location }}</span>
+        </p>
+      </div>
+    </div>
+    <div class="text-dark">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-[23px]"
+      >
+        <path d="m7 7 10 10" />
+        <path d="M17 7v10H7" />
+      </svg>
+    </div>
+  </div>
+</div>
